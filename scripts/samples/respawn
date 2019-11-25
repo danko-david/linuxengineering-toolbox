@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# This script starts the specified command  and restarts when the process exited
+# if the process exited with a non zero exit status we wait one minute before
+# it restarts. It also handles Ctrl+C signals and if you specify the PIDFILE
+# environment variable from outside this script writes that. This makes possible
+# to let the manager program to signal exit to this process and this terminates
+# the spawned process.
+#
+# This was an adapter script for Sys V init based system, where a compiled
+# application exited perically.
+
+_term() {
+	echo "Caught SIGTERM signal!"
+	pkill -P $$;kill -9 $$
+	#pkill -TERM -s 0
+}
+
+trap _term SIGTERM
+trap _term SIGINT
+
+if [ ${PIDFILE} ]; then
+	echo "$$" > ${PIDFILE}
+fi
+
+until false; do
+	$@ &
+	child=$!
+	wait "$child"
+
+	retVal=$?
+	if [ $retVal -ne 0 ]; then
+		echo "Looks like process exited (${retVal}) with error '$@' waiting one minute before continue"
+		sleep 60;
+	fi
+
+	echo "Process '$@' exited with code $?.  Respawning.." >&2
+	sleep 1
+done
+

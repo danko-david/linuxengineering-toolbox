@@ -1,0 +1,172 @@
+## Maintainer: Dankó Dávid (info@dankodavid.hu)
+##
+##
+######################### General For Every System #############################
+
+# Base command tools and utilities used for administering, testing, debugging
+## for __every__ system
+
+apt-get install nmap bwm-ng htop links2 screen apt-file strace git nano\
+ mc hexedit lsof sudo socat nethogs iotop bsdtar iftop sshfs wget tree\
+ rsync mailutils dnsutils tmux curl
+
+#MAINTAINER-TODO: know the `tmux`
+
+### commands, only for advanced use, install only on restricted servers,
+#regular users can access thes commands by default and may cause high load or
+#damage
+apt-get install iperf siege stress
+
+
+
+##### Short utility feature summarize #####
+### Network related
+#nmap	- portscanner
+#bwm-ng	- `bandwidth monitor - next generation` per interface bandwidth usage monitor
+#iftop	- per IP connection bandwidth monitor
+#nethogs- iftop alternative (per IP connection bandwidth monitor)
+#socat	- ultimate socket (more likely file descriptor) utility
+#iperf	- network throughput tester
+
+### File Descriptior related
+#lsof	- `list open files` CLI utility for monitoring open file descriptors
+#iotop	- local disc IO utilisation monitor
+
+### stress testers
+#siege	- Web server stress tester
+#stress	- cpu, memory, io stress tester
+
+### Admin utils
+#mailutils - some server doesn't have mail command by default
+#tree	- prints file hierarchy ion tree format
+#htop	- interactive process viewer
+#links2	- CLI Web browser
+#screen	- Multi terminal session manager (create new terminal/attach/detach)
+#apt-file - `apt-file search` DEB package search utility
+#strace	- process system call tracer `strace -fp $PID$`
+#mc	- `Midnight Commander` CLI file manager (like Total Commander)
+#hexedit- hexa text editor
+#sudo	- utility for a mechanism to gain root access, safer way than regular `su`
+#bsdtar	- MAINTAINER-TODO alternative for tar with an extra feature i don't remember
+#sshfs	- SSH remote filesystem mount (uses FUSE)
+#rsync	- 
+
+### Dev tools
+#git	- ultimate version tracker
+
+
+
+########################## Basic Server Install ################################
+# Almost every system needs the following server applications, mail and web
+# server used to provide a minimal environment for monitoring & failure
+# notification and inspection. (monit sends email about failures and system
+# events, apache used for inspect monit -server healt- pages)
+#
+
+apt-get install ssh postfix apache2 monit munin ntp
+
+#munin	- applies a great autoconfig 
+#ntp	- network time protocol - synchronize local time
+#		(eliminates overload time jitters)
+
+
+# To enable munin site run `a2enconf munin`, usually done by apt install time.
+# munin by default available only for localhost.
+# Edit the /etc/apache2/conf-available/munin.conf, and modify this line:
+#-----
+#<Directory /var/cache/munin/www>
+#-	Require local
+#+	Require all granted
+#-----
+# reload apache: service apache2 reload
+# And now, munin website is available under yourdomain.tld/munin
+
+# Hint: if there's no domain assigned to your server right now, you can add an
+# alias in your local /etc/hosts file. Add a line like this:
+# 8.8.8.8 myhost
+# After adding the line, you can address the target machine with `myhost`
+# and it's works (local) system widely (like web browser, ping myhost,
+# ssh myhost, etc.)
+
+# Testing local mail server:
+# echo  "Test mail content" | mail -s "Test mail subject" info@dankodavid.hu
+# TODO substitute your own email address, before execute command :)
+#
+
+
+#MAINTAINER-TODO firewall: setup, config sample, explanation
+#MAINTAINER-TODO details about listed softwares and append config examples, 
+#MAINTAINER-TODO ssh allowed users, john the ripper
+
+############################ PHP Web Server Install ############################
+
+apt-get install apache2 php5 mysql-server phpmyadmin
+
+#php5-mbstring
+#php5-mysql
+
+# if phpmyadmin configuration skipped at the installation time (apt) and
+#  that results some error at the login screen like:
+#	"Undefined index: is_ajax_request"
+# indicates that phpmyadmin can't connect to the database, wrong configuration
+# given during the installation.
+# You can always recofnigure packages with `dpkg-reconfigure`
+#	`dpkg-reconfigure phpmyadmin`
+#
+# In my case phpmyadmin can't connect to msql using unix domain sockets.
+# Reconfiguring to use TCP solved the issue.
+#
+# source: https://github.com/phpmyadmin/phpmyadmin/issues/11950
+
+# Creating mysql user, and database using console:
+# On deb based systems, there's a file contains an administrator credentials
+# (debian-sys-maint) for automated mysql utilities: /etc/mysql/debian.cnf
+# mysql and mysqldump can recognise this format and use to login to the mysql
+# server:
+# `mysql --defaults-file=/etc/mysql/debian.cnf`
+#
+# Create user:
+#	CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
+# TODO substitute `username` and `password` with your desired credentials
+#
+# Create Database:
+#	CREATE DATABASE mydatabasename
+# TODO substitute `mydatabasename` with the desired databasename
+#
+# "add" user to database (grant permission)
+#
+# GRANT $PRIV ON mydbname.* TO 'username'@'localhost';
+# $PRIV is the list of commands granted for the `username` user.
+# In most cases ALL
+#
+#
+
+
+# MAINTAINER-TODO about `a2enmod rewrite`
+
+
+
+
+
+############################# MAINTAINER-TODO ##################################
+#MAINTAINER-TODO improve this DOC with more type of server, with external config
+# examples, method descriptions:
+#	- Java server:
+#		- basic java (for java plain server application)
+#		- tomcat webserver (with apache AJP)
+#
+#	- PHP Server:
+#		- basic
+#		- version switching using FCGI (HKM)
+#		- custom module (with https://github.com/phalcon/cphalcon)
+
+
+#MAINTAINER-TODO documenting deployment using git, deployment trick with ssh(fs)
+
+############################# MAINTAINER-TODO ##################################
+
+
+#MAINTAINER-TODO: C Compiler machine: apt-get install build-essential cmake automake make
+#gdb strace
+#MAINTAINER-TODO: PHP Compiler machine:
+
