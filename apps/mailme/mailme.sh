@@ -22,7 +22,7 @@ if [[ -n $RES ]] || [ $EXIT_STATUS -ne 0 ]; then
 		echo -ne "\nProgram exit status: $EXIT_STATUS"
 
 		echo -ne "\nProgram output (both stdout and stderr):\n"
-		echo $RES
-	} | mail -s "$SUBJECT" "$EMAIL_ADDRESS"
-#| cat
+		echo "$RES"
+	}| mail -s "$SUBJECT" "$EMAIL_ADDRESS"
+# | cat
 fi
