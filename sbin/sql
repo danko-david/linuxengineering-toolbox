@@ -1,1 +1,2 @@
+#!/bin/bash
 mysql --defaults-file=/etc/mysql/debian.cnf "$@"
