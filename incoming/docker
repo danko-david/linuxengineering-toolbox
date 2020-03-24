@@ -1,0 +1,35 @@
+docker pull jenkins
+
+# docker run -p 8080:8080 -p 50000:50000 jenkins
+
+docker create -it -p 5060:8080 -p 50000:50000 --name jvx-jenkins jenkins
+
+docker start jvx-jenkins
+
+docker attach jvx-jenkins
+
+
+# to detach Ctrl+p or Ctrl+q
+
+
+docker exec -i -t jvx-jenkins /bin/bash
+
+docker stop jvx-jenkins
+
+delete: docker rm jvx-jenkins
+
+create image from container: docker commit $container_name $target_image_name
+
+--------
+
+docker container list
+docker image list
+
+--------
+
+
+
+
+--------------------------------------------------------------------------------
+COPY THIS
+docker create -it --name jvx-jenkins jenkins
