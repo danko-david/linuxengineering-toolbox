@@ -10,7 +10,7 @@ RUN dpkg -i monit_5.20.0-6+deb9u1_amd64.deb
 RUN rm monit_5.20.0-6+deb9u1_amd64.deb
 
 # Configure monit: add monit watch scripts
-RUN bash -c 'cp /opt/linuxengineering-toolbox/config/config_samples/monit/{apache,cron,disc,mysql,sshd,syslog}.conf /etc/monit/conf.d/'
+RUN bash -c 'cp /opt/linuxengineering-toolbox/config/config_samples/monit/{apache,cron,disc,sshd,syslog}.conf /etc/monit/conf.d/'
 
 
 # Set munin to public

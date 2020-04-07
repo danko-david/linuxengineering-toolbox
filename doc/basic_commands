@@ -8,7 +8,7 @@
 
 apt-get install nmap bwm-ng htop links2 screen apt-file strace git nano\
  mc hexedit lsof sudo socat nethogs iotop bsdtar iftop sshfs wget tree\
- rsync mailutils dnsutils tmux curl netcat
+ rsync mailutils dnsutils tmux curl netcat net-tools
 
 #MAINTAINER-TODO: know the `tmux`
 
@@ -49,7 +49,8 @@ apt-get install iperf siege stress
 #sudo	- utility for a mechanism to gain root access, safer way than regular `su`
 #bsdtar	- MAINTAINER-TODO alternative for tar with an extra feature i don't remember
 #sshfs	- SSH remote filesystem mount (uses FUSE)
-#rsync	- 
+#sync	- file copy utility (for bulk copy, archive)
+#net-tools - for netstat command 
 
 ### Dev tools
 #git	- ultimate version tracker
