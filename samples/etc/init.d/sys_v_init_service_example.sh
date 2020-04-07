@@ -92,10 +92,10 @@ echo "."
 # that cause to terminate the process as a default action. In this case comment
 # out this `reload` case.
 #reload)
-echo -n "Reloading service: "$NAME
-start-stop-daemon --stop --signal HUP --quiet --pidfile $PIDFILE --exec $DAEMON
-echo "."
-;;
+#echo -n "Reloading service: "$NAME
+#start-stop-daemon --stop --signal HUP --quiet --pidfile $PIDFILE --exec $DAEMON
+#echo "."
+#;;
 
 *)
 echo "Usage: "$1" {start|stop|restart|reload}"
