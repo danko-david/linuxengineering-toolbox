@@ -18,5 +18,5 @@ EOF
 
 chmod 755 mysql_backup.sh
 
-echo "\n\n# Mysql backups from all the databases\n0 4 * * * /var/backups/mysql_backups/mysql_backup.sh" >> /etc/crontab
+echo "\n\n# Mysql backups from all the databases\n0 2	* * *	root	/var/backups/mysql_backups/mysql_backup.sh" >> /etc/crontab
 
