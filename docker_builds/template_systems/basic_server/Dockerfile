@@ -1,5 +1,6 @@
 FROM lxe_basic
 
+ENV DEBIAN_FRONTEND="noninteractive"
 RUN apt-get -y install ssh postfix apache2 munin
 
 WORKDIR /tmp/
