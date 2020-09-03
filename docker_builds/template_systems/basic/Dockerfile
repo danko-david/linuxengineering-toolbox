@@ -1,6 +1,6 @@
-FROM debian:buster
+FROM debian:stable
 RUN apt-get update
-RUN apt-get -y install nmap bwm-ng htop links2 screen apt-file strace git nano mc hexedit lsof sudo socat nethogs iotop bsdtar iftop sshfs wget tree rsync mailutils dnsutils tmux curl netcat watch net-tools
+RUN apt-get -y install nmap bwm-ng htop links2 screen apt-file strace git nano mc hexedit lsof sudo socat nethogs iotop bsdtar iftop sshfs wget tree rsync mailutils dnsutils tmux curl netcat watch net-tools aptitude
 
 # copy the lxe-toolbox
 COPY . /opt/linuxengineering-toolbox/

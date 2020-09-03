@@ -1,6 +1,6 @@
 FROM lxe_basic
 
-RUN apt-get -y install ssh apache2 munin
+RUN apt-get -y install ssh postfix apache2 munin
 
 WORKDIR /tmp/
 
