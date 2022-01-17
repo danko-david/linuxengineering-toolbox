@@ -1,0 +1,13 @@
+[Unit]
+Description=Start user scripts after system starts
+After=network.target auditd.service
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/run_user_startup_scripts.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+
+
