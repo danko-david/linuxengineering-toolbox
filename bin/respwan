@@ -1,0 +1,22 @@
+#!/bin/bash
+
+_term() {
+  echo "Caught SIGTERM signal!"
+  pkill -P $$;kill -9 $$
+}
+
+trap _term SIGTERM
+trap _term SIGINT
+
+if [ ${RESPAWN_EXPORT_PIDFILE} ]; then
+        echo "$$" > ${RESPAWN_EXPORT_PIDFILE}
+fi
+
+until false; do
+        $@ &
+        child=$!
+        wait "$child"
+        echo "Process '$@' exited with code $?.  Respawning.." >&2
+        sleep 5
+done
+
