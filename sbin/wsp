@@ -1,4 +1,4 @@
 #!/bin/bash
 
 # WSP: Mysql 'Watch "Show Processlist"'
-watch -n 0.5 "mysql --defaults-file=/etc/mysql/debian.cnf -e \"show processlist\" | grep -v \"NULL\""
+watch -n 0.5 "mysql --defaults-file=/etc/mysql/debian.cnf -e \"show processlist\" | grep -vP '\d+\s+NULL'"
