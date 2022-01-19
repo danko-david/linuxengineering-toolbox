@@ -51,20 +51,20 @@ if [ "$fail404" == "200" ]; then
 fi
 
 if [ -z ${WEBDISCOVER_SKIP_BASICS+x} ]; then
-	if [ ! -z ${WEBDISCOVER_HTTP_ONLY+x} ]; then
-		poke_url "http://$1/" $1": HTTP service"
+	if [ -z ${WEBDISCOVER_HTTPS_ONLY+x} ]; then
+		poke_url "https://$1/" $1": HTTP service"
 	fi
 
-	if [ ! -z ${WEBDISCOVER_HTTPS_ONLY+x} ]; then
-		poke_url "https://$1/" $1": HTTPS service"
+	if [ -z ${WEBDISCOVER_HTTP_ONLY+x} ]; then
+		poke_url "http://$1/" $1": HTTPS service"
 	fi
 else
-	if [ ! -z ${WEBDISCOVER_HTTP_ONLY+x} ]; then
-		poke_url "http://$1/"
+	if [ -z ${WEBDISCOVER_HTTPS_ONLY+x} ]; then
+		poke_url "https://$1/"
 	fi
 
-	if [ ! -z ${WEBDISCOVER_HTTPS_ONLY+x} ]; then
-		poke_url "https://$1/"
+	if [ -z ${WEBDISCOVER_HTTP_ONLY+x} ]; then
+		poke_url "http://$1/"
 	fi
 fi
 
@@ -75,12 +75,12 @@ fi
 # - add more service from: apt-file search /etc/apache2/conf-available
 
 SEARCH_PREFIX=()
-if [ -z ${WEBDISCOVER_HTTP_ONLY+x} ]; then
-	SEARCH_PREFIX+=("s")
+if [  -z ${WEBDISCOVER_HTTP_ONLY+x} ]; then
+	SEARCH_PREFIX+=("")
 fi
 
-if [ -z ${WEBDISCOVER_HTTPS_ONLY+x} ]; then
-	SEARCH_PREFIX+=("")
+if [  -z ${WEBDISCOVER_HTTPS_ONLY+x} ]; then
+	SEARCH_PREFIX+=("s")
 fi
 
 
