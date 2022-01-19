@@ -46,7 +46,7 @@ set +e
 
 fail404=$(http_code "http://$1/imsurethiswillbe404")
 if [ "$fail404" == "200" ]; then
-	echo "ERROR: Wrong missing page management. 404 pages returns 200 status code. URL service poking is pointless because it will hit all test URLs. Exiting..."
+	echo "ERROR: $1:Wrong missing page management. 404 pages returns 200 status code. URL service poking is pointless because it will hit all test URLs. Exiting..."
 	exit 1
 fi
 
