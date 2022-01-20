@@ -1,20 +1,22 @@
 #!/bin/bash
 
+#set -o xtrace
+
 FOUND_URL=()
 
 function http_code
 {
-	curl -Lk --write-out '%{http_code}' --silent --output /dev/null $1
+	curl -Lk$2 --write-out '%{http_code}' --silent --output /dev/null $1
 }
 
 function poke_url
 {
-	hc=$(http_code $1)
+	hc=$(http_code $1 $3)
 	if [ "$hc" == "000" ]; then
 		return
 	fi
 
-	if [ "$hc" != "404" ] && [ "$hc" != "403" ] ; then
+	if [ "$hc" != "404" ] && [ "$hc" != "403" ] && [ "$hc" != "301" ] && [ "$hc" != "304" ] ; then
 		if [ "$2" != "" ]; then
 			echo $2
 		fi
@@ -91,7 +93,7 @@ do
 			poke_url "http$s://www.$1" $1": WWW subdomain http$s://www.$1/"
 		fi
 
-		poke_url "http$s://$ip/" $1": Warning: servicing HTTP$s page on ip address "$ip
+		poke_url "http$s://$ip/" $1": Warning: servicing HTTP$s page on ip address "$ip "I"
 
 		U="http$s://$1"
 
