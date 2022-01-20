@@ -10,7 +10,7 @@
 #
 # Options:
 #	-f Specify the redirection list file
-#	-v verbose output (prints all redirect regardless if it passes or fails)
+#	-a prints all redirect regardless if it passes or fails
 #
 # Example:
 #	./redirect_check.sh -f redirects.list
@@ -62,7 +62,7 @@ do
 		from=$(grep -oP '.*(?=\t)' <<< "$line")
 		to=$(grep -oP '(?<=\t).*' <<< "$line")
 		
-		dst=$(curl -I $from 2> /dev/null | tr '\r\n' '\n' | grep -oP "(?<=Location: ).*")
+		dst=$(curl -Ik $from 2> /dev/null | tr '\r\n' '\n' | grep -oP "(?<=Location: ).*")
 		
 		if [ "$to" != "$dst" ]; then
 			echo "Redirection failed \`"$from"\` expected: \`"$to"\`, actual: \`"$dst"\`";
