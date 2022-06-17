@@ -1,0 +1,195 @@
+#!/bin/bash
+
+# Enterprise SSL generator.
+# Used to create a CA and certificates.
+# `ca.cert.pem` can be installed on enterpise machines as "Thrusted root CA"
+# to accept generated certificates.
+# Certificates generated with wildcard domain, so server.localnet also covers
+# *.server.localnet domains on the server.
+
+# Adjust CA_SUBJECT and TLD variables below for your company and network
+# specifications.
+
+CA_SUBJECT="/C=HU/ST=Hungary/L=Miskolc/O=Linuxengineering/OU=Co/CN=linuxengineering/emailAddress=toolbox@linuxengineering.eu/"
+
+TLD=localnet
+
+rh_op_clean()
+{
+	_rh_try_ret_help "Removes all certificate related files in the current working directory"
+	rm *.{key,keypass,pem,srl,csr,enc}
+}
+
+rh_op_initCa()
+{
+	_rh_try_ret_help "Initialize CA on the current directory"
+	if [ -f "mypass.enc" ]
+	then
+		echo "Password file exists. CA meant to beinitialized exiting..."
+		exit 1
+	fi
+
+	#write password
+		echo "password" > mypass.enc
+
+	# generate CA private key
+		openssl genrsa -des3 -passout file:mypass.enc -out ca.key 4096
+
+	# Generate CA Cert
+		openssl req -new -x509 -days 36500 -key ca.key -out ca.cert.pem -passin file:mypass.enc \
+			-addext "keyUsage                = critical, cRLSign, digitalSignature, keyCertSign" \
+			-subj $CA_SUBJECT
+}
+
+rh_op_createServer()
+{
+	_rh_try_ret_help "Creates a new certification with the specified subdomain name: \$1.$TLD"
+	if [ -z $1 ]
+	then
+		echo "No server name given"
+		exit 1
+
+	fi
+
+	if [ -f "$1.crt" ]
+	then
+		echo "$1.crt already exists"
+		exit 1
+	fi
+
+	if [ ! -f "ca.key" ]
+	then
+		echo "ca.key doesnot exists, call cert_initCa to initialize CA"
+		exit 1
+	fi
+
+	SRV=$1
+	FQDN=$SRV.$TLD
+
+
+cat > v3.ext <<- EOF
+
+##Required
+[ req ]
+default_bits                                         = 4096
+distinguished_name                           = req_distinguished_name
+
+##About the system for the request. Ensure the CN = FQDN
+[ req_distinguished_name ]
+commonName                                    = $FQDN
+
+##Extensions to add to a certificate request for how it will be used
+
+[v3_ca]
+basicConstraints=CA:FALSE
+nsCertType                      = client, server, email
+extendedKeyUsage = serverAuth, clientAuth, codeSigning, emailProtection
+nsComment                       = "OpenSSL Generated Certificate"
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid,issuer
+authorityInfoAccess=OCSP;URI:http://ocsp.my.host/
+certificatePolicies= 1.2.4.5, 1.1.3.4
+
+
+keyUsage = critical,digitalSignature, keyEncipherment
+subjectAltName = DNS:$FQDN, DNS:*.$FQDN
+
+EOF
+
+
+	# Generate client
+		#key
+		openssl genrsa -des3 -passout file:mypass.enc -out $SRV.keypass 4096
+		# gen cert Request
+		openssl req -new -key $SRV.keypass -out $SRV.csr -passin file:mypass.enc -subj "/CN=$FQDN/" -config v3.ext -extensions v3_ca
+
+		# verify
+		# openssl rsa -noout -text -in server.key -passin file:mypass.enc
+
+	# sign the key
+		openssl x509 -req -days 36500 -in $SRV.csr -CA ca.cert.pem -extfile v3.ext -CAkey ca.key -CAcreateserial -out $SRV.pem -passin file:mypass.enc -extensions v3_ca -extfile ./v3.ext
+
+
+rm v3.ext
+
+		# remove password
+		openssl rsa -in $SRV.keypass -out $SRV.key -passin file:mypass.enc
+
+		#fullchain generálása
+		cat $SRV.pem ca.cert.pem > $SRV.fullchain.pem
+
+cat <<- EOF
+Certification file: $(readlink -f $SRV.pem)
+In apache configuration use:
+	SSLCertificateFile	$(readlink -f $SRV.fullchain.pem)
+	SSLCertificateKeyFile	$(readlink -f $SRV.key)
+EOF
+
+}
+
+
+############################# RH helper functions ##############################
+
+_rh_try_ret_help()
+{
+	if [ ! -z $RH_RUNTIME_REQUEST_HELP ]
+	then
+		echo $1
+		exit 1;
+	fi
+}
+
+
+rh_op_help()
+{
+	_rh_try_ret_help "Returns RH help with the list of all defined functions"
+
+	echo "RH stands for 'right hand'. It is a wrapper script wherein you can collect tiny commands."
+	echo "Specify one righthand function from the followings:"
+
+	RH_RUNTIME_REQUEST_HELP=true
+
+	for f in ${RH_FUNCTIONS[@]}
+	do
+		# if the command has help
+		if type "rh_op_"$f | grep -q _rh_try_ret_help
+		then
+			echo -e "\t$f - "$("rh_op_"$f)
+		else
+			echo -e "\t$f"
+		fi
+	done
+}
+
+############################## Application area ################################
+
+# Collection available commands
+RH_FUNCTIONS=()
+
+for func in `declare -F | grep -Po '(?<=rh_op_).*$' | sort`
+do
+	RH_FUNCTIONS+=($func);
+done
+
+# print help if nothing specified
+
+if [ $# '<' '1' ]
+then
+	rh_op_help
+	exit 1
+fi
+
+# run command
+for f in ${RH_FUNCTIONS[@]}
+do
+	if [ "$1" "=" "$f" ]
+	then
+		"rh_op_"$f "${@:2}"
+		exit $?
+	fi
+done
+
+echo "Righthand function $1 not found, so now printing help..."
+rh_op_help
+exit 1
+
