@@ -1,0 +1,112 @@
+#!/bin/bash
+
+# righthand script
+# Used to wrap custom operations inside one script
+#
+
+########################## RH user defined functions ###########################
+
+# all user defined operation starts with "rh_op_" prefix.
+
+
+############################# RH helper functions ##############################
+
+_rh_try_ret_help()
+{
+	if [ ! -z $RH_RUNTIME_REQUEST_HELP ]
+	then
+		echo $1
+		exit 1;
+	fi
+}
+
+_rh_get_universe_name()
+{
+	if [ ! -z $RH_UNIVERSE_NAME ]
+	then
+		echo "$RH_UNIVERSE_NAME"
+	elif [ -f "$(dirname $0)/.rh_universe_name" ]
+	then
+		cat "$(dirname $0)/.rh_universe_name"
+	else
+		echo $(dirname $(readlink -f "$0")) | grep -Po "[^/]+$"
+	fi
+}
+
+############################ RH built-in functions #############################
+
+rh_op_enter()
+{
+	_rh_try_ret_help 'Executes new bash shell that include rh command and all neighbor scripts ($PATH injection).'
+
+	export PS1="RH("$(_rh_get_universe_name)"): $(bash -i -c 'echo $PS1') "
+	export PATH="$PATH:"$(dirname $(readlink -f "$0"))
+	EX="export PS1="$(printf "%q" "$PS1")";"
+	EX+="complete -W \"${RH_FUNCTIONS[@]}\" \"$(basename $0)\";"
+	exec /bin/bash --init-file <(echo "$EX")
+}
+
+rh_op_echo()
+{
+	_rh_try_ret_help "Test command, echoes back every argument"
+	echo "echo in RH: $@"
+}
+
+rh_op_help()
+{
+	_rh_try_ret_help "Returns RH help with the list of all defined functions"
+
+	echo "RH stands for 'right hand'. It is a wrapper script wherein you can collect tiny commands."
+	echo "Specify one righthand function from the followings:"
+
+	RH_RUNTIME_REQUEST_HELP=true
+
+	for f in ${RH_FUNCTIONS[@]}
+	do
+		# if the command has help
+		if type "rh_op_"$f | grep -q _rh_try_ret_help
+		then
+			echo -e "\t$f - "$("rh_op_"$f)
+		else
+			echo -e "\t$f"
+		fi
+	done
+}
+
+rh_op_print_universe()
+{
+	_rh_try_ret_help 'Prints the logical name of the RH command repository. You can change by specifying $RH_UNIVERSE_NAME or editing the content of the rh command neighbor file .rh_universe_name'
+	echo $(_rh_get_universe_name)
+}
+
+############################## Application area ################################
+
+# Collection available commands
+RH_FUNCTIONS=()
+
+for func in `declare -F | grep -Po '(?<=rh_op_).*$' | sort`
+do
+	RH_FUNCTIONS+=($func);
+done
+
+# print help if nothing specified
+
+if [ $# '<' '1' ]
+then
+	rh_op_help
+	exit 1
+fi
+
+# run command
+for f in ${RH_FUNCTIONS[@]}
+do
+	if [ "$1" "=" "$f" ]
+	then
+		"rh_op_"$f "${@:2}"
+		exit $?
+	fi
+done
+
+echo "Righthand function $1 not found, so now printing help..."
+rh_op_help
+exit 1
