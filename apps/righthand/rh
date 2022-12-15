@@ -2,13 +2,6 @@
 
 # righthand script
 # Used to wrap custom operations inside one script
-#
-
-########################## RH user defined functions ###########################
-
-# all user defined operation starts with "rh_op_" prefix.
-
-
 ############################# RH helper functions ##############################
 
 _rh_try_ret_help()
@@ -58,7 +51,6 @@ help()
 	for f in ${RH_FUNCTIONS[@]}
 	do
 		# if the command has help
-		#echo "&&"$(type $f)
 		if type $f | grep -qzP '{\s+_rh_try_ret_help '
 		then
 			echo -e "\t$f - "$($f)
