@@ -35,7 +35,7 @@ _rh_get_universe_name()
 
 ############################ RH built-in functions #############################
 
-rh_op_enter()
+enter()
 {
 	_rh_try_ret_help 'Executes new bash shell that include rh command and all neighbor scripts ($PATH injection).'
 
@@ -46,15 +46,9 @@ rh_op_enter()
 	exec /bin/bash --init-file <(echo "$EX")
 }
 
-rh_op_echo()
+help()
 {
-	_rh_try_ret_help "Test command, echoes back every argument"
-	echo "echo in RH: $@"
-}
-
-rh_op_help()
-{
-	_rh_try_ret_help "Returns RH help with the list of all defined functions"
+	_rh_try_ret_help "Returns RH help with the list of all annotated functions"
 
 	echo "RH stands for 'right hand'. It is a wrapper script wherein you can collect tiny commands."
 	echo "Specify one righthand function from the followings:"
@@ -64,16 +58,15 @@ rh_op_help()
 	for f in ${RH_FUNCTIONS[@]}
 	do
 		# if the command has help
-		if type "rh_op_"$f | grep -q _rh_try_ret_help
+		#echo "&&"$(type $f)
+		if type $f | grep -qzP '{\s+_rh_try_ret_help '
 		then
-			echo -e "\t$f - "$("rh_op_"$f)
-		else
-			echo -e "\t$f"
+			echo -e "\t$f - "$($f)
 		fi
 	done
 }
 
-rh_op_print_universe()
+print_universe()
 {
 	_rh_try_ret_help 'Prints the logical name of the RH command repository. You can change by specifying $RH_UNIVERSE_NAME or editing the content of the rh command neighbor file .rh_universe_name'
 	echo $(_rh_get_universe_name)
@@ -84,7 +77,7 @@ rh_op_print_universe()
 # Collection available commands
 RH_FUNCTIONS=()
 
-for func in `declare -F | grep -Po '(?<=rh_op_).*$' | sort`
+for func in `typeset -F | grep -Po '(?<=-f).*$' | sort`
 do
 	RH_FUNCTIONS+=($func);
 done
@@ -93,7 +86,7 @@ done
 
 if [ $# '<' '1' ]
 then
-	rh_op_help
+	help
 	exit 1
 fi
 
@@ -102,11 +95,11 @@ for f in ${RH_FUNCTIONS[@]}
 do
 	if [ "$1" "=" "$f" ]
 	then
-		"rh_op_"$f "${@:2}"
+		$f "${@:2}"
 		exit $?
 	fi
 done
 
 echo "Righthand function $1 not found, so now printing help..."
-rh_op_help
+help
 exit 1
