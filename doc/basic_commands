@@ -7,15 +7,15 @@
 ## for __every__ system
 
 apt-get install nmap bwm-ng htop links2 screen apt-file strace git nano\
- mc hexedit lsof sudo socat nethogs iotop bsdtar iftop sshfs wget tree\
- rsync mailutils dnsutils tmux curl netcat net-tools
+ mc hexedit lsof sudo socat nethogs iotop zip iftop sshfs wget tree\
+ rsync mailutils dnsutils tmux curl netcat-openbsd net-tools stress
 
 #MAINTAINER-TODO: know the `tmux`
 
 ### commands, only for advanced use, install only on restricted servers,
 #regular users can access thes commands by default and may cause high load or
 #damage
-apt-get install iperf siege stress
+apt-get install iperf siege
 
 
 
@@ -170,4 +170,3 @@ apt-get install apache2 php5 mysql-server phpmyadmin
 #MAINTAINER-TODO: C Compiler machine: apt-get install build-essential cmake automake make
 #gdb strace
 #MAINTAINER-TODO: PHP Compiler machine:
-
