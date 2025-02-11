@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# righthand script
+# helper script
 # Used to wrap custom operations inside one script
 ############################# RH helper functions ##############################
 
@@ -13,31 +13,7 @@ _rh_try_ret_help()
 	fi
 }
 
-_rh_get_universe_name()
-{
-	if [ ! -z $RH_UNIVERSE_NAME ]
-	then
-		echo "$RH_UNIVERSE_NAME"
-	elif [ -f "$(dirname $0)/.rh_universe_name" ]
-	then
-		cat "$(dirname $0)/.rh_universe_name"
-	else
-		echo $(dirname $(readlink -f "$0")) | grep -Po "[^/]+$"
-	fi
-}
-
 ############################ RH built-in functions #############################
-
-enter()
-{
-	_rh_try_ret_help 'Executes new bash shell that include rh command and all neighbor scripts ($PATH injection).'
-
-	export PS1="RH("$(_rh_get_universe_name)"): $(bash -i -c 'echo $PS1') "
-	export PATH="$PATH:"$(dirname $(readlink -f "$0"))
-	EX="export PS1="$(printf "%q" "$PS1")";"
-	EX+="complete -W \"${RH_FUNCTIONS[@]}\" \"$(basename $0)\";"
-	exec /bin/bash --init-file <(echo "$EX")
-}
 
 help()
 {
@@ -56,12 +32,6 @@ help()
 			echo -e "\t$f - "$($f)
 		fi
 	done
-}
-
-print_universe()
-{
-	_rh_try_ret_help 'Prints the logical name of the RH command repository. You can change by specifying $RH_UNIVERSE_NAME or editing the content of the rh command neighbor file .rh_universe_name'
-	echo $(_rh_get_universe_name)
 }
 
 ############################## Application area ################################
