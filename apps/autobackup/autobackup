@@ -1,0 +1,188 @@
+#!/bin/bash
+
+# righthand script
+# Used to wrap custom operations inside one script
+############################# RH helper functions ##############################
+
+_rh_try_ret_help()
+{
+	if [ ! -z $RH_RUNTIME_REQUEST_HELP ]
+	then
+		echo $1
+		exit 1;
+	fi
+}
+
+############################ RH built-in functions #############################
+
+help()
+{
+	_rh_try_ret_help "Returns RH help with the list of all annotated functions"
+
+	echo "RH stands for 'right hand'. It is a wrapper script wherein you can collect tiny commands."
+	echo "Specify one righthand function from the followings:"
+
+	RH_RUNTIME_REQUEST_HELP=true
+
+	for f in ${RH_FUNCTIONS[@]}
+	do
+		# if the command has help
+		if type $f | grep -qzP '{\s+_rh_try_ret_help '
+		then
+			echo -e "\t$f - "$($f)
+		fi
+	done
+}
+
+############################## Application area ################################
+
+CONFIG_FILENAME=.autobackuprc
+
+ensure_config_loaded()
+{
+	if [ -z $AUTOBACKUP_TARGET_DIR ]
+	then
+		if ! [ -f ./$CONFIG_FILENAME ]
+		then
+			echo "$CONFIG_FILENAME does not exist int thr current working directory"
+			exit 1
+		fi
+
+		set -a
+		source ./$CONFIG_FILENAME
+		set +a
+
+		if [ -z $AUTOBACKUP_TARGET_DIR ]
+		then
+			echo "$CONFIG_FILENAME does not set AUTOBACKUP_TARGET_DIR"
+			exit 1
+		fi
+	fi
+}
+
+get_prefixed_vars()
+{
+  for var in `declare -x | grep -Po "(?<=declare -x )[^=]+" | grep -P "^$1" | sort`
+  do
+  	echo $var
+  done
+}
+
+backup()
+{
+	_rh_try_ret_help "Runs automatic backup using the $CONFIG_FILENAME config file in the current directory"
+	ensure_config_loaded
+
+	BACKUP_START_DATE=$(date +%Y_%m_%d__%H_%M_%S)
+
+	for hostvar in `get_prefixed_vars AUTOBACKUP_HOST_`
+	do
+		host=${!hostvar}
+		if [ -z $AUTOBACKUP_PARALLEL ]
+		then
+			# run linear
+			backup_host $host
+		else
+			# run parallel
+			backup_host $host &
+		fi
+	done
+
+	# wait async backups, this effective only if any async backup in progress
+	wait
+
+	# TODO exit status
+}
+
+backup_host()
+{
+	mkdir -p ${AUTOBACKUP_LOG_DIR}/$BACKUP_START_DATE
+	mkdir -p $AUTOBACKUP_TARGET_DIR/$1
+	backup_process $1 2>&1 | tee -a $AUTOBACKUP_LOG_DIR/$BACKUP_START_DATE/$1.log
+
+
+}
+
+host_error()
+{
+	echo host_error
+}
+
+backup_process()
+{
+	backup_dirs=$(ssh -i $AUTOBACKUP_SSH_PRIV_KEY -o BatchMode=yes -o "StrictHostKeyChecking no" $1 cat /.autobackup_paths)
+	exit=$?
+	if [ 0 != $exit ]
+	then
+		echo "Can' read host $1 /.autobackup_paths"
+		host_error $1 $exit
+		return $exit
+	fi
+
+	for dir in $backup_dirs
+	do
+		mkdir -p $AUTOBACKUP_TARGET_DIR/$1/$dir
+		rsync -Pav -e "ssh -i $AUTOBACKUP_SSH_PRIV_KEY -o BatchMode=yes -o 'StrictHostKeyChecking no'" $1:${dir}/ $AUTOBACKUP_TARGET_DIR/$1/$dir/
+
+		exit=$?
+		# TODO try other paths
+		if [ 0 != $exit ]
+		then
+			echo "Error ocurred while backing up $1 $dir"
+			host_error $1 $exit
+			return $exit
+		fi
+	done
+
+}
+
+render_conf_template()
+{
+cat <<- EOF
+# Autobackup template configuration
+
+AUTOBACKUP_TARGET_DIR=./backup_hosts
+
+
+
+EOF
+}
+
+backup_init()
+{
+# creatst config, ssh key structure
+echo todo
+
+}
+
+
+############################# start application  ###############################
+# Collection available commands
+RH_FUNCTIONS=()
+
+for func in `typeset -F | grep -Po '(?<=-f).*$' | sort`
+do
+	RH_FUNCTIONS+=($func);
+done
+
+# print help if nothing specified
+
+if [ $# '<' '1' ]
+then
+	help
+	exit 1
+fi
+
+# run command
+for f in ${RH_FUNCTIONS[@]}
+do
+	if [ "$1" "=" "$f" ]
+	then
+		$f "${@:2}"
+		exit $?
+	fi
+done
+
+echo "Function $1 not found, so now printing help..."
+help
+exit 1
