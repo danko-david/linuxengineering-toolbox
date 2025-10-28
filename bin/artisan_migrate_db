@@ -1,4 +1,0 @@
-#!/bin/bash
-# NOTE: find ... -exec {}\ ; looks like doesn't support argument concateration
-#  like: find ... -exec prog --path={}\ ; that's the reason for xargs
-find database/ -type d | sed "s/^/--path=/g" | xargs -i sh -c 'echo {} ;php artisan migrate {}'
