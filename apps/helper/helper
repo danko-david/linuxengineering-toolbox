@@ -1,8 +1,13 @@
 #!/bin/bash
 
-# helper script
-# Used to wrap custom operations inside one script
+# Linuxengineerings lxe helper script
+# Used to wrap custom callable cli functions inside one script
 ############################# RH helper functions ##############################
+
+HELPER_ROOT=$(dirname $(readlink -f $0))
+
+# Uncomment if your script should run in the directory this script is located.
+# cd $HELPER_ROOT
 
 _rh_try_ret_help()
 {
@@ -17,11 +22,13 @@ _rh_try_ret_help()
 
 help()
 {
-	_rh_try_ret_help "Returns RH help with the list of all annotated functions"
+	_rh_try_ret_help "Prints help with the list of all annotated functions"
 
-	echo "RH stands for 'right hand'. It is a wrapper script wherein you can collect tiny commands."
-	echo "Specify one righthand function from the followings:"
-
+cat <<EOF
+Linuxengineering helper script.
+This is a wrapper script that lets you collect functions for CLI use.
+Specify one function from the following:
+EOF
 	RH_RUNTIME_REQUEST_HELP=true
 
 	for f in ${RH_FUNCTIONS[@]}
