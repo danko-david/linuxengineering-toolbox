@@ -69,6 +69,6 @@ do
 	fi
 done
 
-echo "Righthand function $1 not found, so now printing help..."
+echo "Helper function $1 not found, so now printing help..."
 help
 exit 1
